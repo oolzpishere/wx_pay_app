@@ -1,0 +1,27 @@
+document.addEventListener("turbolinks:load", function() {
+
+  var prepay_id = "";
+
+  $('.jsonapi-pay-button').on('click', function(event){
+    event.preventDefault();
+    var url = $(this).attr('href');
+    var request = $.ajax({url: url, dataType: 'json'});
+
+    // Or retrieve response by:
+    // responseXML and/or responseText when the underlying request responded with xml and/or text, respectively
+    request.done(function( msg ) {
+      console.log(msg)
+      // prepay_id = msg.prepay_id;
+      
+    });
+
+  });
+
+  // params = {
+  //   prepayid: prepay_id
+  // }
+
+
+
+
+})

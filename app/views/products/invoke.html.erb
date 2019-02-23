@@ -1,0 +1,10 @@
+
+
+<% qrcode = RQRCode::QRCode.new(@r["code_url"]) %>
+<% svg = qrcode.as_svg %>
+<%= raw svg %>
+
+<%# byebug %>
+
+<%= link_to 'Edit', edit_product_path(@product) %> |
+<%= link_to 'Back', products_path %>
