@@ -4,6 +4,7 @@ document.addEventListener("turbolinks:load", function() {
 
   $('.jsonapi-pay-button').on('click', function(event){
     event.preventDefault();
+    console.log("invoke jsonapi-pay-button click event")
     var url = $(this).attr('href');
     var request = $.ajax({url: url, dataType: 'json'});
 
@@ -11,15 +12,29 @@ document.addEventListener("turbolinks:load", function() {
     // responseXML and/or responseText when the underlying request responded with xml and/or text, respectively
     request.done(function( msg ) {
       console.log(msg)
+      WeixinJSBridge.invoke('getBrandWCPayRequest', {
+        "appId":msg.appId,     //公众号名称，由商户传入
+        "timeStamp":msg.timeStamp,         //时间戳，自1970年以来的秒数
+        "nonceStr":msg.nonceStr, //随机串
+        "package":msg.package,
+        "signType":msg.signType,         //微信签名方式：
+        "paySign":msg.paySign //微信签名
+      },
+        function(res){
+        if(res.err_msg == "get_brand_wcpay_request:ok" ){
+        // 使用以上方式判断前端返回,微信团队郑重提示：
+              //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+          console.log("js bridge response \n" + res)
+          alert(JSON.stringify(res))
+        }
+        console.log("Fail \n" + res);
+        alert(JSON.stringify(res))
+      })
       // prepay_id = msg.prepay_id;
-      
+
     });
 
   });
-
-  // params = {
-  //   prepayid: prepay_id
-  // }
 
 
 

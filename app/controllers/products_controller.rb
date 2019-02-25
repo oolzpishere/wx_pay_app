@@ -75,7 +75,7 @@ class ProductsController < ApplicationController
       spbill_create_ip: '127.0.0.1',
       notify_url: 'http://test_pay.sflx.com.cn/notify',
       # trade_type: 'NATIVE', # could be "MWEB", ""JSAPI", "NATIVE" or "APP",
-      # openid: 'OPENID' # required when trade_type is `JSAPI`
+      openid: session[:openid] # required when trade_type is `JSAPI`
     }
     if support_wx_pay?
       params[:trade_type] = 'JSAPI'
@@ -88,11 +88,10 @@ class ProductsController < ApplicationController
     p @r
 
 
-
     if 1 || params[:trade_type] == 'JSAPI'
       jsapi_params = {
         prepayid: @r['prepay_id'],
-        noncestr: SecureRandom.uuid.tr('-', ''),
+        noncestr: SecureRandom.uuid.tr('-', '')
       }
       @r = WxPay::Service.generate_js_pay_req jsapi_params
       # byebug
@@ -165,7 +164,7 @@ class ProductsController < ApplicationController
         return
       end
 
-      sns_url = WxPay::Service.generate_authorize_url(request.url)
+      sns_url = WxPay::Service.generate_authorize_url(request.url.sub(/https/, 'http'))
       redirect_to sns_url and return
     end
 
