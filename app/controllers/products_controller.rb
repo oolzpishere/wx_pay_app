@@ -1,6 +1,5 @@
 class ProductsController < ApplicationController
   protect_from_forgery except: :notify
-  before_action :support_wx_pay?
   before_action :invoke_wx_auth
   before_action :get_wechat_sns
 
@@ -68,40 +67,46 @@ class ProductsController < ApplicationController
   end
 
   def invoke
-    params = {
-      body: @product.name,
-      out_trade_no: out_trade_no,
-      total_fee: @product.price,
-      spbill_create_ip: '127.0.0.1',
-      notify_url: 'http://test_pay.sflx.com.cn/notify',
-      # trade_type: 'NATIVE', # could be "MWEB", ""JSAPI", "NATIVE" or "APP",
-      openid: session[:openid] # required when trade_type is `JSAPI`
-    }
+    params = {}
     if support_wx_pay?
       params[:trade_type] = 'JSAPI'
-      # params[:openid] =
+      params[:openid] = session[:openid] # required when trade_type is `JSAPI`
+      res = invoke_unifiedorder(params, @product)
+      @r = generate_js_pay_req(res['prepay_id'])
     else
       params[:trade_type] = 'NATIVE'
-    end
-
-    @r = WxPay::Service.invoke_unifiedorder params
-    p @r
-
-
-    if 1 || params[:trade_type] == 'JSAPI'
-      jsapi_params = {
-        prepayid: @r['prepay_id'],
-        noncestr: SecureRandom.uuid.tr('-', '')
-      }
-      @r = WxPay::Service.generate_js_pay_req jsapi_params
-      # byebug
-      p @r
+      @r = invoke_unifiedorder(params, @product)
     end
 
     respond_to do |format|
-      # format.html { redirect_to products_url, notice: 'Product was successfully destroyed.' }
+      format.html { return }
       format.json { render json: @r, status: :ok }
     end
+  end
+
+  def invoke_unifiedorder(params, product)
+    # trade_type: 'NATIVE', # could be "MWEB", ""JSAPI", "NATIVE" or "APP",
+    params = {
+      body: product.name,
+      out_trade_no: out_trade_no,
+      total_fee: product.price,
+      spbill_create_ip: '127.0.0.1',
+      notify_url: 'http://test_pay.sflx.com.cn/notify',
+    }.merge(params)
+
+    res = WxPay::Service.invoke_unifiedorder params
+    p res
+    res
+  end
+
+  def generate_js_pay_req(prepay_id)
+    jsapi_params = {
+      prepayid: prepay_id,
+      noncestr: SecureRandom.uuid.tr('-', '')
+    }
+    payload = WxPay::Service.generate_js_pay_req jsapi_params
+    p payload
+    payload
   end
 
   def notify
@@ -160,7 +165,7 @@ class ProductsController < ApplicationController
     end
 
     def invoke_wx_auth
-      if params[:state].present? || session['openid'].present?
+      if !support_wx_pay? || params[:state].present? || session['openid'].present?
         return
       end
 

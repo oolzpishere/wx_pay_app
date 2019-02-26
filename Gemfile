@@ -77,7 +77,7 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
-gem 'wx_pay', git: "https://github.com/oolzpishere/wx_pay"
+gem 'wx_pay'
 gem 'rqrcode'
 
 # Use jquery as the JavaScript library
